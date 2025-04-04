@@ -90,37 +90,37 @@ endif()
 
 list(APPEND TARGET_LIBRARIES sioclient)
 
-find_package(OpenSSL)
+# OpenSSL
+add_library(sioclient_tls ${ALL_SRC})
+target_include_directories(sioclient_tls PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    PRIVATE
+    ${MODULE_INCLUDE_DIRS}
+    ${OPENSSL_INCLUDE_DIR}
+)
 
-if(OPENSSL_FOUND)
-    add_library(sioclient_tls ${ALL_SRC})
-    target_include_directories(sioclient_tls PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-        PRIVATE
-        ${MODULE_INCLUDE_DIRS}
-        ${OPENSSL_INCLUDE_DIR}
-    )
-
-    target_compile_features(sioclient_tls PUBLIC cxx_std_11)
-    target_link_libraries(sioclient_tls PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-    if (NOT USE_SUBMODULES)
-        target_link_libraries(sioclient_tls PRIVATE websocketpp::websocketpp asio asio::asio rapidjson)
-    endif()
-
-    target_compile_definitions(sioclient_tls PRIVATE -DSIO_TLS)
-    target_link_libraries(sioclient_tls PUBLIC Threads::Threads)
-
-    if(BUILD_SHARED_LIBS)
-        set_target_properties(sioclient_tls
-            PROPERTIES
-            SOVERSION ${PROJECT_VERSION_MAJOR}
-            VERSION ${PROJECT_VERSION}
-        )
-    endif()
-
-    list(APPEND TARGET_LIBRARIES sioclient_tls)
+target_compile_features(sioclient_tls PUBLIC cxx_std_11)
+target_link_directories(sioclient_tls PRIVATE ${OPENSSL_LIBRARIES})
+target_include_directories(sioclient_tls PRIVATE ${OPENSSL_INCLUDE_DIR})
+target_link_libraries(sioclient_tls PRIVATE ssl crypto)
+if (NOT USE_SUBMODULES)
+    target_link_libraries(sioclient_tls PRIVATE websocketpp::websocketpp asio asio::asio rapidjson)
 endif()
+
+target_compile_definitions(sioclient_tls PRIVATE -DSIO_TLS)
+target_link_libraries(sioclient_tls PUBLIC Threads::Threads)
+
+if(BUILD_SHARED_LIBS)
+    set_target_properties(sioclient_tls
+        PROPERTIES
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        VERSION ${PROJECT_VERSION}
+    )
+endif()
+
+list(APPEND TARGET_LIBRARIES sioclient_tls)
+####
 
 export(PACKAGE sioclient)
 
